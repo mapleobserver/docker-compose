@@ -1,0 +1,24 @@
+version: '3'
+ 
+services:
+  reverse-proxy:
+    container_name: traefik
+    image: traefik:1.6.3-alpine
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - traefik
+    command: traefik -c /etc/traefik.toml --sendAnonymousUsage=false
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.toml:/etc/traefik.toml
+      - /home/ubuntu/acmesh/ssl:/data/ssl
+      - ./logs:/data/logs
+ 
+# 记得先创建外部网卡
+# docker network create traefik
+networks:
+  traefik:
+    external: true

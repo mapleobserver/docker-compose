@@ -1,0 +1,155 @@
+################################################################
+# 全局设置
+################################################################
+
+# 激活调试模式 （默认关闭）
+debug = false
+
+# 日志等级 （默认 ERROR）
+logLevel = "INFO"
+
+# 全局入口点类型 （默认 http）
+defaultEntryPoints = ["http", "https"]
+
+# 不上报统计信息
+sendAnonymousUsage = false
+
+################################################################
+# 入口点设置
+################################################################
+
+[entryPoints]
+
+    # 默认前端
+    [entryPoints.http]
+        address = ":80"
+        compress = true
+        [entryPoints.http.redirect]
+            entryPoint = "https"
+    [entryPoints.https]
+        address = ":443"
+        compress = true
+    [entryPoints.https.tls]
+        [[entryPoints.https.tls.certificates]]
+            certFile = "/data/ssl/abc.com/abc.com.cer"
+            keyFile = "/data/ssl/abc.com/abc.com.key"
+
+    # 控制台端口
+    [entryPoints.traefik-api]
+        address = ":4399"
+        [entryPoints.traefik-api.auth]
+            [entryPoints.traefik-api.auth.basic]
+                users = [
+                    "",
+                ]
+
+    # Ping端口
+    [entryPoints.traefik-ping]
+        address = ":4398"
+
+
+################################################################
+# 文件代理设置
+################################################################
+
+[file]
+    [backends]
+        [backends.dashboard]
+            [backends.dashboard.servers.server1]
+                url = "http://127.0.0.1:4399"
+        [backends.ping]
+            [backends.ping.servers.server1]
+                url = "http://127.0.0.1:4398"
+
+[frontends]
+    [frontends.dashboard]
+        entrypoints = ["https"]
+        backend = "dashboard"
+        [frontends.dashboard.routes.route01]
+            rule = "Host:d.abc.com"
+    [frontends.ping]
+        entrypoints = ["https"]
+        backend = "ping"
+        [frontends.ping.routes.route01]
+            rule = "Host:p.abc.com"
+
+################################################################
+# 日志设置
+################################################################
+
+[traefikLog]
+# 日志默认会打印到stdout，如果不指定filePath，默认使用stdout
+  filePath = "/data/logs/traefik.log"
+# 格式目前支持 "json" 和 "common"（默认）
+  format = "common"
+
+################################################################
+# 访问日志 配置
+################################################################
+
+[accessLog]
+# 日志默认会打印到stdout，如果不指定filePath，默认使用stdout
+  filePath = "/data/logs/access.log"
+# 格式目前支持 "json" 和 "common"（默认）
+  format = "common"
+
+################################################################
+# API 及 控制台 配置
+################################################################
+
+# 启用API以及控制台
+[api]
+    # 入口点名称
+    entryPoint = "traefik-api"
+
+    # 开启控制台（默认开启）
+    dashboard = true
+
+    # 默认协议
+    defaultEntryPoints = ["https"]
+
+################################################################
+# Ping 配置
+################################################################
+
+# 启用 ping
+[ping]
+    # 入口点名称
+    entryPoint = "traefik-ping"
+
+################################################################
+# Docker 后端配置
+################################################################
+
+# 启用Docker后端
+[docker]
+
+# Docker服务后端
+endpoint = "unix:///var/run/docker.sock"
+# 默认域名
+domain = "traefix.abc.com"
+# 监控docker变化
+watch = true
+
+# 使用自定义模板（可选）
+# filename = "docker.tmpl"
+
+# 对容器默认进行暴露（默认开启）
+#   如果关闭选项，则容器不包含 `traefik.enable=true` 标签，就不会被暴露
+exposedbydefault = true
+
+# 使用绑定端口的IP地址取代内部私有网络（默认关闭）
+usebindportip = false
+
+# 使用 Swarm Mode （默认关闭）
+swarmmode = false
+
+# 启用 docker TLS 链接.
+#
+# 可选配置
+#
+#  [docker.tls]
+#  ca = "/etc/ssl/ca.crt"
+#  cert = "/etc/ssl/docker.crt"
+#  key = "/etc/ssl/docker.key"
+#  insecureskipverify = true
